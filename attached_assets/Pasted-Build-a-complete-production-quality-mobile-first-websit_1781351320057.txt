@@ -1,0 +1,124 @@
+Build a complete, production-quality, mobile-first website for a brand called
+KILAI — a microgreens production house in Bengaluru, India.
+
+THE WHOLE IDEA (do not add anything beyond this):
+Kilai grows living microgreens trays by hand. The entire website sells ONE thing in
+one emotional gesture: a person "adopts" a real tray that is growing right now in our
+grow house, watches it grow day by day, and finally receives that exact living tray
+at home in a beautiful Kilai box — with a gentle note on how to keep growing it.
+There is no B2B section, no complex catalogue, no clutter. One pure, affectionate,
+gratitude-toned experience. Brand statement: "अन्नं ब्रह्म — Annam Brahma — food is
+the first medicine. We grow it like a prayer."
+
+TONE & FEELING (this is the most important instruction):
+Calm, affectionate, grateful, reverent — like receiving a handwritten note, not a sales
+page. Minimal. Lots of breathing space. Nothing shouts. It should feel like a quiet ritual
+that breaks every stereotype of a vegetable/grocery website. Premium, soulful, slow.
+
+TECH:
+- React + Tailwind CSS, mobile-first, fully responsive (must feel like a native app on phone).
+- App-like and swipe-able: full-screen sections, smooth gesture/section transitions, NOT a
+  long scrolling brochure. On desktop, use elegant horizontal/section navigation with arrows.
+- Use Framer Motion for transitions and micro-animations.
+- No backend required yet — use clean placeholder data (an array of tray objects) and
+  structure code so a real API can replace it later. Add clear // TODO comments where a
+  backend (payments, auth, tray data) will plug in.
+- Respect prefers-reduced-motion (provide a still "calm mode" with the same content).
+- Add soft haptic-style feedback hooks and keep performance high (preload images).
+
+DESIGN SYSTEM:
+- Palette: monsoon-night green #0A1D14 (primary bg), deep leaf #14442C, young-sprout
+  #A8C98A, bright sprout #C9E2AE, rice-cream #F1ECDD (light bg/text), temple-copper #B26B3D
+  (one accent, used very sparingly).
+- Type: headings in an inscriptional serif (Marcellus); Sanskrit in "Tiro Devanagari
+  Sanskrit"; body in a clean grotesk (Hanken Grotesk); small labels/counters in a mono
+  (IBM Plex Mono). Load from Google Fonts.
+- Motion rule: ONE orchestrated moment per screen, never competing animations.
+
+SOUND:
+- A soft rain ambience that the user turns on with one elegant toggle (top corner),
+  remembered across the visit. Generate it with the Web Audio API (filtered noise loop)
+  so no audio file is needed. Never autoplay — start only on user tap. This rain is part
+  of the brand identity (our Instagram reels open with rain).
+
+THE CENTERPIECE — 360° LIVING TRAY VIEWER (build this carefully):
+- This is an IMAGE-SEQUENCE spin, NOT a 3D model. The viewer loads a sequence of photos
+  taken around the tray (e.g. frame_001.jpg ... frame_036.jpg) and swaps frames as the
+  user drags horizontally — so dragging spins the tray smoothly in 360°.
+- Preload all frames before enabling drag; show a gentle loader ("waking your tray…").
+- Drag (touch + mouse) maps to frame index; it should loop seamlessly both directions.
+- Add a slow auto-spin that pauses the moment the user touches it.
+- Use placeholder frames for now (any image sequence or generated placeholders) and leave
+  a clearly commented spot to drop in real photo sequences per tray.
+- STRETCH (build only if clean): a second vertical-drag axis that scrubs through GROWTH
+  DAYS (Day 2 → Day 5 → Day 9) using separate frame sets per day — "spin it in space,
+  fast-forward its growth." If it adds complexity, ship horizontal spin first and leave a
+  // TODO for the time axis.
+
+SCREENS (keep it this minimal — full-screen, swipe between them):
+
+1) THE WELCOME / INVOCATION
+   - Dark monsoon green, faint rain. Sanskrit "अन्नं ब्रह्म" fades in like incense, then:
+     "Food is the first medicine. We grow it like a prayer."
+   - One soft line: "Somewhere in Bengaluru, a tray is growing for you right now."
+   - A single gentle call: "Meet your tray →" (swipe up or tap).
+   - Rain sound toggle in the corner.
+
+2) THE LIVING TRAY GRID ("Adopt a tray growing in front of you")
+   - A calm grid of real trays currently growing. We have 40 trays. Each card shows: a
+     soft photo, the variety (Radish / Mustard / Sunflower / Pea / Beet / etc.), a live
+     "Day X of 9" counter, the price (₹1,000–₹2,000 by variety), and status.
+   - Available trays say "Adopt me." Taken trays say, warmly, "Now growing for the Sharma
+     family, Indiranagar" (gentle social proof + scarcity; do not make it pushy).
+   - Tapping a tray opens screen 3.
+   - Copy header: "Forty trays. Each one becomes someone's. Choose yours."
+
+3) THE TRAY (360° viewer + adopt)
+   - The 360° living-tray viewer fills the screen. Below it, quietly: variety, its
+     character ("Radish — a clean, peppery bite"), "Day X of 9", and price.
+   - Gentle line: "Adopt this tray and watch it grow, every day, until it comes home to you."
+   - One warm button: "Adopt this tray — ₹X". (// TODO: connect Razorpay + UPI.)
+   - After adopting: a tender confirmation — "Tray #214 is yours now. We'll send you a
+     photo every morning until harvest." (// TODO: phone OTP + WhatsApp daily photo.)
+
+4) WHAT HAPPENS NEXT (the gratitude / ritual screen)
+   - Three quiet beats, affectionate tone:
+     • "Every morning, a photo of your tray." 
+     • "On Day 9, we harvest it at dawn — by hand, never warehoused."
+     • "It arrives at your home, still living, in a Kilai box — with a note on how to keep
+        it growing." 
+   - Feeling: receiving a gift, not tracking an order.
+
+5) THE VOW (brand soul — keep it)
+   - Quiet, dark, centered. The honest, unfinished promise: every Kilai seed is moving
+     toward being sourced from certified organic soil, grown by farmers we know by name
+     near Coimbatore (Save Soil network). Show a small 3-step roadmap: pesticide-free
+     growing (done) → direct organic-farmer ties (now) → 100% organic-soil seed (the vow).
+   - Line: "An unfinished promise, printed on purpose."
+
+6) FOOTER / CLOSE
+   - Kilai wordmark, "अन्नं ब्रह्म", Bengaluru. A single warm thank-you line. Minimal links:
+     My tray · The vow · Contact (WhatsApp). Nothing more.
+
+COPY RULES:
+- Warm, grateful, unhurried. Short sentences. Use "your tray," "comes home," "grown like
+  a prayer." Address the reader softly and directly.
+- "Food is the first medicine" is PHILOSOPHY only. Never claim to treat, cure, or prevent
+  any disease or condition (legal + tone reasons).
+- Sanskrit appears as invocation, never scattered as decoration.
+
+DO NOT:
+- Do not build a long scrolling landing page or a typical e-commerce store layout.
+- Do not add B2B pages, multiple product categories, mega-menus, popups, discount banners,
+  countdown-timer pressure, or stock-photo "farm fresh" clichés.
+- Do not use a heavy 3D engine for the spin — it is an image sequence only.
+- Do not autoplay sound.
+
+ACCEPTANCE CRITERIA:
+- Feels like a calm, premium app on a phone; swiping between full-screen sections is smooth.
+- The 360° tray viewer spins by dragging and looks delightful with placeholder frames.
+- Rain sound toggles on/off elegantly and never autoplays.
+- The whole thing reads as one affectionate ritual centered on adopting a living tray.
+- Code is clean, componentized, with // TODO markers for payments, auth, and real tray data.
+
+Deliver the full working app.
