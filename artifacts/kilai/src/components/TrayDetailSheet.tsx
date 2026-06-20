@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { X, Leaf } from 'lucide-react';
-import { Tray, varietyGradient } from '@/data/trays';
+import { Tray } from '@workspace/api-client-react';
+import { varietyGradient } from '@/data/trays';
 
 const categoryLabel: Record<string, string> = {
   tall:    'A · 6-Inch Grow',

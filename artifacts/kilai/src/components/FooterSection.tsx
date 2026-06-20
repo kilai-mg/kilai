@@ -1,4 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { MessageCircle } from 'lucide-react';
+
+const WHATSAPP_NUMBER = '8754336384'; // replace with Kilai's actual WhatsApp number (91 + 10-digit mobile)
 
 interface FooterSectionProps {
   onNavigate: (section: number) => void;
@@ -84,74 +87,73 @@ export function FooterSection({ onNavigate }: FooterSectionProps) {
           Thank you for growing with us.
         </p>
 
-        {/* Links */}
+        {/* WhatsApp CTA — prominent */}
+        <a
+          href={`https://wa.me/${WHATSAPP_NUMBER}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="link-whatsapp"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 24px',
+            background: 'rgba(37,211,102,0.12)',
+            border: '1px solid rgba(37,211,102,0.35)',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            transition: 'background 0.2s, border-color 0.2s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(37,211,102,0.2)';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(37,211,102,0.6)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(37,211,102,0.12)';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(37,211,102,0.35)';
+          }}
+        >
+          <MessageCircle size={16} color="rgba(37,211,102,0.9)" strokeWidth={1.5} />
+          <span style={{
+            fontFamily: "'Hanken Grotesk', sans-serif",
+            fontWeight: 400,
+            fontSize: '0.85rem',
+            color: 'rgba(37,211,102,0.9)',
+            letterSpacing: '0.02em',
+          }}>
+            Chat with us on WhatsApp
+          </span>
+        </a>
+
+        {/* Secondary nav links */}
         <div
           className="flex items-center gap-3"
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: '0.65rem',
+            fontSize: '0.6rem',
             letterSpacing: '0.08em',
-            color: 'rgba(241,236,221,0.3)',
+            color: 'rgba(241,236,221,0.25)',
           }}
         >
           <button
             onClick={() => onNavigate(1)}
             data-testid="link-my-tray"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'inherit',
-              fontFamily: 'inherit',
-              fontSize: 'inherit',
-              letterSpacing: 'inherit',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.7)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.3)')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.6)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.25)')}
           >
-            My tray
+            Adopt a tray
           </button>
-
           <span style={{ opacity: 0.4 }}>·</span>
-
           <button
             onClick={() => onNavigate(4)}
             data-testid="link-the-vow"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'inherit',
-              fontFamily: 'inherit',
-              fontSize: 'inherit',
-              letterSpacing: 'inherit',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.7)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.3)')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.6)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.25)')}
           >
             The vow
           </button>
-
-          <span style={{ opacity: 0.4 }}>·</span>
-
-          {/* TODO: add real WhatsApp number */}
-          <a
-            href="https://wa.me/"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="link-contact"
-            style={{
-              color: 'inherit',
-              textDecoration: 'none',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.7)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.3)')}
-          >
-            Contact
-          </a>
         </div>
       </motion.div>
     </div>

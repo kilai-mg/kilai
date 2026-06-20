@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { TRAYS, Tray, varietyGradient } from '@/data/trays';
+import { Tray, useListTrays, getListTraysQueryKey } from '@workspace/api-client-react';
+import { TRAYS, varietyGradient } from '@/data/trays';
 
 const categoryLabel: Record<string, string> = {
   tall:    '6″ Grow',
@@ -182,6 +183,13 @@ interface TrayGridProps {
 
 export function TrayGrid({ onAdoptTray, onViewAdoptedTray }: TrayGridProps) {
   const prefersReduced = useReducedMotion();
+  const { data: trays = TRAYS as unknown as Tray[] } = useListTrays({
+    query: {
+      queryKey: getListTraysQueryKey(),
+      initialData: TRAYS as unknown as Tray[],
+      staleTime: 30_000,
+    },
+  });
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden" style={{ background: 'var(--kilai-bg)' }}>
@@ -207,7 +215,7 @@ export function TrayGrid({ onAdoptTray, onViewAdoptedTray }: TrayGridProps) {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-20" style={{ scrollbarWidth: 'none' }}>
         <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))' }}>
-          {TRAYS.map((tray, i) => (
+          {trays.map((tray, i) => (
             <motion.div
               key={tray.id}
               initial={{ opacity: 0, y: prefersReduced ? 0 : 16 }}

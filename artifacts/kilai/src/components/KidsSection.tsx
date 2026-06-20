@@ -23,13 +23,17 @@ const faqs = [
   },
 ];
 
-export function KidsSection() {
+interface KidsSectionProps {
+  onOpenAdoption: (variety: string) => void;
+}
+
+export function KidsSection({ onOpenAdoption }: KidsSectionProps) {
   const prefersReduced = useReducedMotion();
 
   const fadeUp = (delay: number) =>
     prefersReduced
       ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3 } }
-      : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] } };
+      : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } };
 
   return (
     <div
@@ -251,9 +255,7 @@ export function KidsSection() {
                   }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.5)')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.25)')}
-                  onClick={() => {
-                    // TODO: connect Razorpay + UPI for kids kit
-                  }}
+                  onClick={() => onOpenAdoption('Peas')}
                 >
                   Adopt this tray
                 </button>

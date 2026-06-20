@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { Camera, Sunrise, Package } from 'lucide-react';
+import { useGetStats, getGetStatsQueryKey } from '@workspace/api-client-react';
 
 const beats = [
   {
@@ -21,10 +22,11 @@ const beats = [
 
 export function WhatHappensNext() {
   const prefersReduced = useReducedMotion();
+  const { data: stats } = useGetStats({ query: { queryKey: getGetStatsQueryKey(), staleTime: 60_000, retry: false } });
 
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center px-6"
+      className="w-full h-full flex flex-col items-center justify-center px-6 gap-10"
       style={{ background: 'var(--kilai-bg)' }}
     >
       <motion.p
@@ -37,7 +39,6 @@ export function WhatHappensNext() {
           color: 'rgba(241,236,221,0.35)',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          marginBottom: '2.5rem',
         }}
       >
         What happens after you adopt your tray
@@ -55,53 +56,53 @@ export function WhatHappensNext() {
             <div
               className="flex items-center justify-center"
               style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                background: 'rgba(168,201,138,0.08)',
-                border: '1px solid rgba(168,201,138,0.18)',
+                width: '44px', height: '44px', borderRadius: '50%',
+                background: 'rgba(168,201,138,0.08)', border: '1px solid rgba(168,201,138,0.18)',
               }}
             >
               <beat.icon size={18} style={{ color: 'var(--kilai-sprout)' }} />
             </div>
-
-            <p
-              style={{
-                fontFamily: "'Marcellus', Georgia, serif",
-                fontSize: 'clamp(0.9rem, 2.2vw, 1.05rem)',
-                color: 'var(--kilai-cream)',
-                lineHeight: 1.6,
-              }}
-            >
+            <p style={{ fontFamily: "'Marcellus', Georgia, serif", fontSize: 'clamp(0.9rem, 2.2vw, 1.05rem)', color: 'var(--kilai-cream)', lineHeight: 1.6 }}>
               {beat.heading}
             </p>
-
-            <p
-              style={{
-                fontFamily: "'Hanken Grotesk', sans-serif",
-                fontWeight: 300,
-                fontSize: '0.8rem',
-                color: 'rgba(241,236,221,0.4)',
-                lineHeight: 1.6,
-              }}
-            >
+            <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.8rem', color: 'rgba(241,236,221,0.4)', lineHeight: 1.6 }}>
               {beat.sub}
             </p>
-
-            {/* Connector line (desktop) */}
-            {i < beats.length - 1 && (
-              <div
-                className="hidden md:block absolute"
-                style={{
-                  width: '1px',
-                  height: '40px',
-                  background: 'rgba(168,201,138,0.12)',
-                }}
-              />
-            )}
           </motion.div>
         ))}
       </div>
+
+      {/* Live farm ticker */}
+      {stats && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="flex items-center gap-6"
+          style={{
+            background: 'rgba(168,201,138,0.05)',
+            border: '1px solid rgba(168,201,138,0.12)',
+            borderRadius: '6px',
+            padding: '10px 20px',
+          }}
+        >
+          {[
+            { label: 'growing now', value: stats.total - stats.available },
+            { label: 'available', value: stats.available },
+            { label: 'adopted', value: stats.adopted },
+          ].map(({ label, value }, i) => (
+            <div key={i} className="flex flex-col items-center gap-0.5"
+              style={{ borderLeft: i > 0 ? '1px solid rgba(168,201,138,0.1)' : 'none', paddingLeft: i > 0 ? '20px' : '0' }}>
+              <span style={{ fontFamily: "'Marcellus', Georgia, serif", fontSize: '1.15rem', color: 'var(--kilai-cream)' }}>
+                {value}
+              </span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.5rem', letterSpacing: '0.1em', color: 'rgba(168,201,138,0.5)', textTransform: 'uppercase' }}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }

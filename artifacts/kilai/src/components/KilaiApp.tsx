@@ -14,7 +14,9 @@ import { KidsSection } from './KidsSection';
 import { BottomNav, SectionId } from './BottomNav';
 import { AdoptionFlow } from './AdoptionFlow';
 import { TrayDetailSheet } from './TrayDetailSheet';
-import { Tray } from '@/data/trays';
+import { Tray } from '@workspace/api-client-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { getListTraysQueryKey } from '@workspace/api-client-react';
 
 // ─── Ritual section indices (swipe flow) ───
 // 0 = Welcome
@@ -50,8 +52,9 @@ export function KilaiApp() {
   const [ritualSection, setRitualSection] = useState(0);
   const [direction, setDirection] = useState<Direction>(1);
   const [selectedTray, setSelectedTray] = useState<Tray | null>(null);
-  const [adoptionTray, setAdoptionTray] = useState<Tray | null>(null);
+  const [adoptionVariety, setAdoptionVariety] = useState<string | null>(null);
   const [detailTray, setDetailTray] = useState<Tray | null>(null);
+  const queryClient = useQueryClient();
 
   const prefersReduced = useReducedMotion();
   const touchStartX = useRef<number | null>(null);
@@ -68,8 +71,12 @@ export function KilaiApp() {
     navigateRitual(2, 1);
   };
 
-  const handleAdoptTray = (tray: Tray) => {
-    setAdoptionTray(tray);
+  const handleAdoptTray = (tray: Tray) => setAdoptionVariety(tray.variety);
+  const handleOpenAdoption = (variety: string) => setAdoptionVariety(variety);
+
+  const handleAdoptionClose = () => {
+    setAdoptionVariety(null);
+    queryClient.invalidateQueries({ queryKey: getListTraysQueryKey() });
   };
 
   const handleViewAdoptedTray = (tray: Tray) => {
@@ -110,8 +117,8 @@ export function KilaiApp() {
     exit:   { opacity: 0 },
   };
 
-  const ritualTransition  = prefersReduced ? { duration: 0.25 } : { duration: 0.55, ease: [0.22, 1, 0.36, 1] };
-  const fadeTransition    = { duration: 0.3, ease: 'easeInOut' };
+  const ritualTransition  = prefersReduced ? { duration: 0.25 } : { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] };
+  const fadeTransition    = { duration: 0.3, ease: 'easeInOut' as const };
 
   const prevSection = prevRitual(ritualSection);
   const nextSection = nextRitual(ritualSection);
@@ -185,7 +192,7 @@ export function KilaiApp() {
           {activeTab === 'kids' && (
             <motion.div key="kids" variants={fadeVariants} initial="enter" animate="center" exit="exit"
               transition={fadeTransition} className="absolute inset-0 w-full h-full">
-              <KidsSection />
+              <KidsSection onOpenAdoption={handleOpenAdoption} />
             </motion.div>
           )}
 
@@ -230,10 +237,10 @@ export function KilaiApp() {
 
       {/* ─── Adoption flow overlay ─── */}
       <AnimatePresence>
-        {adoptionTray && (
+        {adoptionVariety !== null && (
           <AdoptionFlow
-            preselectedVariety={adoptionTray.variety}
-            onClose={() => setAdoptionTray(null)}
+            preselectedVariety={adoptionVariety}
+            onClose={handleAdoptionClose}
           />
         )}
       </AnimatePresence>

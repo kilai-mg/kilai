@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
-import { Tray } from '@/data/trays';
+import { Tray } from '@workspace/api-client-react';
 
 const FRAME_COUNT = 24;
 const CANVAS_W = 400;

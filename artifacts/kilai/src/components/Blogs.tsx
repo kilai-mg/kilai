@@ -226,11 +226,11 @@ function PostReader({ post, onBack }: { post: Post; onBack: () => void }) {
       initial={{ opacity: 0, x: prefersReduced ? 0 : 30 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: prefersReduced ? 0 : -30 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
       className="w-full h-full overflow-y-auto"
       style={{ scrollbarWidth: 'none' }}
     >
-      <div className="max-w-lg mx-auto px-6 py-12 flex flex-col gap-8">
+      <div className="max-w-lg md:max-w-2xl mx-auto px-6 md:px-12 py-12 flex flex-col gap-8">
         <button
           onClick={onBack}
           data-testid="button-blog-back"
@@ -292,7 +292,7 @@ export function Blogs() {
             className="w-full h-full overflow-y-auto"
             style={{ scrollbarWidth: 'none' }}
           >
-            <div className="max-w-xl mx-auto px-6 py-16 flex flex-col gap-6">
+            <div className="max-w-xl md:max-w-5xl mx-auto px-6 md:px-12 py-16 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.6rem', letterSpacing: '0.22em', color: 'rgba(241,236,221,0.28)', textTransform: 'uppercase' }}>
                   The journal
@@ -302,13 +302,14 @@ export function Blogs() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-5 md:grid md:grid-cols-2 md:gap-6">
                 {POSTS.map((post, i) => (
                   <motion.div
                     key={post.id}
                     initial={{ opacity: 0, y: prefersReduced ? 0 : 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.55, delay: prefersReduced ? 0 : i * 0.1 }}
+                    className={post.pinned ? 'md:col-span-2' : ''}
                   >
                     <PostCard post={post} onClick={() => setActivePost(post)} />
                   </motion.div>

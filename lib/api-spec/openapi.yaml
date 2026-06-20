@@ -2,14 +2,25 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 0.2.0
+  description: Kilai API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: varieties
+    description: Microgreen variety catalog
+  - name: trays
+    description: Live tray inventory
+  - name: adoptions
+    description: Tray adoption orders
+  - name: bulk
+    description: Bulk and gifting enquiries
+  - name: stats
+    description: Live farm statistics
+
 paths:
   /healthz:
     get:
@@ -24,6 +35,124 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /varieties:
+    get:
+      operationId: listVarieties
+      tags: [varieties]
+      summary: List all varieties
+      description: Returns the full microgreen variety catalog
+      responses:
+        "200":
+          description: Variety list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Variety"
+
+  /trays:
+    get:
+      operationId: listTrays
+      tags: [trays]
+      summary: List all trays
+      description: Returns all trays with their current grow status
+      responses:
+        "200":
+          description: Tray list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tray"
+
+  /trays/{id}:
+    get:
+      operationId: getTray
+      tags: [trays]
+      summary: Get a single tray
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tray detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tray"
+        "404":
+          description: Tray not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Live farm statistics
+      responses:
+        "200":
+          description: Current tray counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FarmStats"
+
+  /bulk-inquiries:
+    post:
+      operationId: createBulkInquiry
+      tags: [bulk]
+      summary: Submit a bulk or gifting enquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkInquiryRequest"
+      responses:
+        "201":
+          description: Enquiry received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkInquiryResponse"
+
+  /adoptions:
+    post:
+      operationId: createAdoption
+      tags: [adoptions]
+      summary: Adopt a tray
+      description: >
+        Finds the next available tray for the requested variety, marks it adopted,
+        and records the customer details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdoptionRequest"
+      responses:
+        "201":
+          description: Adoption created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdoptionResponse"
+        "409":
+          description: No available tray for that variety
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +163,154 @@ components:
       required:
         - status
 
+    Variety:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          enum: [tall, short, premium]
+        character:
+          type: string
+        priceBase:
+          type: integer
+        nutrients:
+          type: array
+          items:
+            type: string
+        nutrientNote:
+          type: string
+      required:
+        - id
+        - name
+        - category
+        - character
+        - priceBase
+        - nutrients
+        - nutrientNote
+
+    Tray:
+      type: object
+      properties:
+        id:
+          type: integer
+        variety:
+          type: string
+        category:
+          type: string
+          enum: [tall, short, premium]
+        character:
+          type: string
+        nutrients:
+          type: array
+          items:
+            type: string
+        nutrientNote:
+          type: string
+        day:
+          type: integer
+        totalDays:
+          type: integer
+        price:
+          type: integer
+        status:
+          type: string
+          enum: [available, adopted, growing, harvested, delivered]
+        adoptedBy:
+          type: string
+          nullable: true
+      required:
+        - id
+        - variety
+        - category
+        - character
+        - nutrients
+        - nutrientNote
+        - day
+        - totalDays
+        - price
+        - status
+
+    FarmStats:
+      type: object
+      required: [available, adopted, growing, total]
+      properties:
+        available:
+          type: integer
+        adopted:
+          type: integer
+        growing:
+          type: integer
+        total:
+          type: integer
+
+    BulkInquiryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        quantity:
+          type: string
+        occasion:
+          type: string
+        phone:
+          type: string
+
+    BulkInquiryResponse:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+
+    AdoptionRequest:
+      type: object
+      required:
+        - varietyName
+        - customerName
+        - customerPhone
+      properties:
+        varietyName:
+          type: string
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        wantTrayAddon:
+          type: boolean
+          default: false
+        wantGuideAddon:
+          type: boolean
+          default: false
+
+    AdoptionResponse:
+      type: object
+      required:
+        - id
+        - trayId
+        - customerName
+        - totalRupees
+        - status
+      properties:
+        id:
+          type: integer
+        trayId:
+          type: integer
+        customerName:
+          type: string
+        totalRupees:
+          type: integer
+        status:
+          type: string
+
+    NotFound:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

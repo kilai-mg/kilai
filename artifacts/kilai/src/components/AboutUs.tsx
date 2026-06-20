@@ -1,4 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { MessageCircle } from 'lucide-react';
+
+const WHATSAPP_NUMBER = '8754336384'; // same as FooterSection — update both when you get the number
 
 export function AboutUs() {
   const prefersReduced = useReducedMotion();
@@ -6,7 +9,7 @@ export function AboutUs() {
   const fadeUp = (delay: number) =>
     prefersReduced
       ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3, delay: 0 } }
-      : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] } };
+      : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } };
 
   return (
     <div
@@ -171,6 +174,44 @@ export function AboutUs() {
             No labels. No miles. No mystery. Just a living tray, grown like a prayer,
             delivered to your door.
           </p>
+        </motion.div>
+
+        {/* Contact */}
+        <motion.div {...fadeUp(0.55)}>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '14px 20px',
+              background: 'rgba(37,211,102,0.08)',
+              border: '1px solid rgba(37,211,102,0.28)',
+              borderRadius: '10px',
+              textDecoration: 'none',
+              transition: 'background 0.2s, border-color 0.2s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(37,211,102,0.15)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(37,211,102,0.5)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(37,211,102,0.08)';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(37,211,102,0.28)';
+            }}
+          >
+            <MessageCircle size={18} color="rgba(37,211,102,0.85)" strokeWidth={1.5} />
+            <div className="flex flex-col gap-0.5">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 400, fontSize: '0.88rem', color: 'rgba(37,211,102,0.9)' }}>
+                Chat with us on WhatsApp
+              </span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(241,236,221,0.3)', letterSpacing: '0.06em' }}>
+                Questions, orders, or just to say hello
+              </span>
+            </div>
+          </a>
         </motion.div>
 
         {/* Bottom spacer */}

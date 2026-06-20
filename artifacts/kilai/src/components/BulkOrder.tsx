@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useCreateBulkInquiry } from '@workspace/api-client-react';
 
 const contexts = [
   { label: 'Cafes & restaurants', icon: '○' },
@@ -11,12 +12,14 @@ const contexts = [
 export function BulkOrder() {
   const prefersReduced = useReducedMotion();
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', quantity: '', occasion: '' });
+  const [form, setForm] = useState({ name: '', phone: '', quantity: '', occasion: '' });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { mutateAsync: submit, isPending } = useCreateBulkInquiry();
 
   const fadeUp = (delay: number) =>
     prefersReduced
       ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3 } }
-      : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] } };
+      : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } };
 
   const inputStyle = {
     width: '100%',
@@ -130,7 +133,6 @@ export function BulkOrder() {
                 We'll reach out personally — give us a day or two.
                 Good things shouldn't be rushed.
               </p>
-              {/* TODO: connect form to email / WhatsApp notification */}
             </motion.div>
           ) : (
             <motion.div key="form" {...fadeUp(0.25)} className="flex flex-col gap-6">
@@ -142,6 +144,18 @@ export function BulkOrder() {
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   data-testid="input-bulk-name"
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.4)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.15)')}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Your WhatsApp number</label>
+                <input
+                  type="tel"
+                  placeholder="We'll reply on WhatsApp"
+                  value={form.phone}
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                   style={inputStyle}
                   onFocus={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.4)')}
                   onBlur={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.15)')}
@@ -175,25 +189,40 @@ export function BulkOrder() {
               </div>
 
               <button
-                onClick={() => { if (form.name.trim()) setSent(true); }}
+                onClick={async () => {
+                  if (!form.name.trim() || isPending) return;
+                  setSubmitError(null);
+                  try {
+                    await submit({ data: { name: form.name, phone: form.phone, quantity: form.quantity, occasion: form.occasion } });
+                    setSent(true);
+                  } catch {
+                    setSubmitError('Something went wrong. Please try again.');
+                  }
+                }}
+                disabled={isPending || !form.name.trim()}
                 data-testid="button-bulk-submit"
                 style={{
                   fontFamily: "'Marcellus', Georgia, serif",
                   fontSize: '0.9rem',
-                  color: 'var(--kilai-cream)',
+                  color: isPending || !form.name.trim() ? 'rgba(241,236,221,0.3)' : 'var(--kilai-cream)',
                   background: 'rgba(20,68,44,0.5)',
                   border: '1px solid rgba(168,201,138,0.25)',
                   borderRadius: '2px',
                   padding: '13px 24px',
-                  cursor: 'pointer',
+                  cursor: isPending || !form.name.trim() ? 'not-allowed' : 'pointer',
                   letterSpacing: '0.06em',
                   transition: 'border-color 0.2s',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.5)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.25)')}
               >
-                Send us a note
+                {isPending ? 'Sending…' : 'Send us a note'}
               </button>
+              {submitError && (
+                <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.75rem', color: 'rgba(255,160,120,0.8)', textAlign: 'center' }}>
+                  {submitError}
+                </p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

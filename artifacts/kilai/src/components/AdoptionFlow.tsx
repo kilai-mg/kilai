@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, Check, ChevronRight, BookOpen, Layers } from 'lucide-react';
 import { VARIETY_DATA } from '@/data/trays';
+import { useCreateAdoption } from '@workspace/api-client-react';
 
 // ── Pricing ──────────────────────────────────────────────────────────────────
 const ADDON_TRAY_PRICE   = 349;
@@ -32,12 +33,18 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
   const [selectedVariety, setVariety] = useState<string>(preselectedVariety ?? '');
   const [wantTray, setWantTray]       = useState(false);
   const [wantGuide, setWantGuide]     = useState(false);
+  const [customerName, setCustomerName]   = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [done, setDone]               = useState(false);
+  const [assignedTrayId, setAssignedTrayId] = useState<number | null>(null);
+  const [adoptionError, setAdoptionError]   = useState<string | null>(null);
 
   const variety = VARIETY_DATA.find(v => v.name === selectedVariety);
   const total = (variety?.price ?? 0) + (wantTray ? ADDON_TRAY_PRICE : 0) + (wantGuide ? ADDON_GUIDE_PRICE : 0);
 
   const stepIndex = step === 'variety' ? 0 : step === 'addons' ? 1 : 2;
+
+  const { mutateAsync: adopt, isPending: isAdopting } = useCreateAdoption();
 
   const slideVariants = prefersReduced
     ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
@@ -47,8 +54,24 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
         exit:   { x: -40, opacity: 0 },
       };
 
-  function handleConfirm() {
-    setDone(true);
+  async function handleConfirm() {
+    if (!variety || !customerName.trim() || !customerPhone.trim()) return;
+    setAdoptionError(null);
+    try {
+      const result = await adopt({
+        data: {
+          varietyName: variety.name,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          wantTrayAddon: wantTray,
+          wantGuideAddon: wantGuide,
+        },
+      });
+      setAssignedTrayId(result.trayId);
+      setDone(true);
+    } catch {
+      setAdoptionError('Something went wrong. Please try again or call us.');
+    }
   }
 
   // ── Done screen ─────────────────────────────────────────────────────────────
@@ -59,7 +82,7 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
             className="flex flex-col items-center justify-center gap-6 py-10 px-6 text-center"
           >
             <motion.div
@@ -80,8 +103,13 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
               <p style={{ fontFamily: "'Marcellus', Georgia, serif", fontSize: '1.3rem', color: 'var(--kilai-cream)', lineHeight: 1.45 }}>
                 Your {selectedVariety} tray<br />is being born.
               </p>
+              {assignedTrayId !== null && (
+                <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.6rem', color: 'rgba(168,201,138,0.5)', letterSpacing: '0.1em' }}>
+                  TRAY #{assignedTrayId}
+                </p>
+              )}
               <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.85rem', color: 'rgba(241,236,221,0.5)', lineHeight: 1.7 }}>
-                We'll reach out within 24 hours to confirm your tray's grow date and delivery window.
+                We'll WhatsApp you within 24 hours to confirm your tray's grow date and delivery window.
               </p>
             </div>
 
@@ -144,7 +172,7 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
               <motion.div
                 key="variety"
                 variants={slideVariants} initial="enter" animate="center" exit="exit"
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none' }}
               >
                 <VarietyPicker
@@ -159,7 +187,7 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
               <motion.div
                 key="addons"
                 variants={slideVariants} initial="enter" animate="center" exit="exit"
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none' }}
               >
                 <AddonsStep
@@ -176,7 +204,7 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
               <motion.div
                 key="confirm"
                 variants={slideVariants} initial="enter" animate="center" exit="exit"
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none' }}
               >
                 <ConfirmStep
@@ -184,6 +212,12 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
                   wantTray={wantTray}
                   wantGuide={wantGuide}
                   total={total}
+                  customerName={customerName}
+                  setCustomerName={setCustomerName}
+                  customerPhone={customerPhone}
+                  setCustomerPhone={setCustomerPhone}
+                  isPending={isAdopting}
+                  error={adoptionError}
                   onBack={() => setStep('addons')}
                   onConfirm={handleConfirm}
                 />
@@ -501,11 +535,17 @@ function AddonToggle({ icon, title, description, price, active, onToggle }: {
 
 // ── Step 3: Confirm ───────────────────────────────────────────────────────────
 
-function ConfirmStep({ variety, wantTray, wantGuide, total, onBack, onConfirm }: {
+function ConfirmStep({ variety, wantTray, wantGuide, total, customerName, setCustomerName, customerPhone, setCustomerPhone, isPending, error, onBack, onConfirm }: {
   variety: VarietyInfo | undefined;
   wantTray: boolean; wantGuide: boolean;
-  total: number; onBack: () => void; onConfirm: () => void;
+  total: number;
+  customerName: string; setCustomerName: (v: string) => void;
+  customerPhone: string; setCustomerPhone: (v: string) => void;
+  isPending: boolean; error: string | null;
+  onBack: () => void; onConfirm: () => void;
 }) {
+  const canSubmit = customerName.trim().length > 0 && customerPhone.trim().length > 0 && !isPending;
+
   return (
     <div className="flex flex-col px-5 pb-6 gap-6">
       <div className="flex flex-col gap-1">
@@ -571,28 +611,68 @@ function ConfirmStep({ variety, wantTray, wantGuide, total, onBack, onConfirm }:
         </div>
       </div>
 
+      {/* Customer details */}
+      <div className="flex flex-col gap-3">
+        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.55rem', color: 'rgba(241,236,221,0.28)', letterSpacing: '0.1em' }}>YOUR DETAILS</p>
+        <input
+          type="text"
+          placeholder="Your name"
+          value={customerName}
+          onChange={e => setCustomerName(e.target.value)}
+          style={{
+            width: '100%', padding: '12px 14px',
+            background: 'rgba(168,201,138,0.05)', border: '1px solid rgba(168,201,138,0.2)',
+            borderRadius: '8px', outline: 'none',
+            fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.88rem',
+            color: 'var(--kilai-cream)',
+          }}
+        />
+        <input
+          type="tel"
+          placeholder="WhatsApp number"
+          value={customerPhone}
+          onChange={e => setCustomerPhone(e.target.value)}
+          style={{
+            width: '100%', padding: '12px 14px',
+            background: 'rgba(168,201,138,0.05)', border: '1px solid rgba(168,201,138,0.2)',
+            borderRadius: '8px', outline: 'none',
+            fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.88rem',
+            color: 'var(--kilai-cream)',
+          }}
+        />
+      </div>
+
       {/* Delivery note */}
       <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.76rem', color: 'rgba(241,236,221,0.35)', lineHeight: 1.65, textAlign: 'center' }}>
-        We'll confirm your tray's grow date within 24 hours.<br />Fresh harvest delivered to your door on Day 9.
+        We'll WhatsApp you within 24 hours to confirm your tray's grow date.<br />Fresh harvest delivered to your door on Day 9.
       </p>
 
       {/* CTAs */}
       <div className="flex flex-col gap-3">
         <motion.button
           onClick={onConfirm}
-          whileTap={{ scale: 0.97 }}
-          animate={{ boxShadow: ['0 0 0px rgba(168,201,138,0)', '0 0 18px 4px rgba(168,201,138,0.16)', '0 0 0px rgba(168,201,138,0)'] }}
+          disabled={!canSubmit}
+          whileTap={canSubmit ? { scale: 0.97 } : undefined}
+          animate={canSubmit ? { boxShadow: ['0 0 0px rgba(168,201,138,0)', '0 0 18px 4px rgba(168,201,138,0.16)', '0 0 0px rgba(168,201,138,0)'] } : undefined}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             width: '100%', padding: '15px',
-            background: 'rgba(168,201,138,0.16)', border: '1px solid rgba(168,201,138,0.38)',
-            borderRadius: '10px', cursor: 'pointer',
-            fontFamily: "'Marcellus', Georgia, serif", fontSize: '1rem', color: 'var(--kilai-cream)',
+            background: canSubmit ? 'rgba(168,201,138,0.16)' : 'rgba(168,201,138,0.06)',
+            border: `1px solid ${canSubmit ? 'rgba(168,201,138,0.38)' : 'rgba(168,201,138,0.15)'}`,
+            borderRadius: '10px', cursor: canSubmit ? 'pointer' : 'not-allowed',
+            fontFamily: "'Marcellus', Georgia, serif", fontSize: '1rem',
+            color: canSubmit ? 'var(--kilai-cream)' : 'rgba(241,236,221,0.3)',
             letterSpacing: '0.03em',
+            transition: 'all 0.2s',
           }}
         >
-          Adopt this tray
+          {isPending ? 'Adopting…' : 'Adopt this tray'}
         </motion.button>
+        {error && (
+          <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.73rem', color: 'rgba(255,160,120,0.8)', textAlign: 'center', lineHeight: 1.5 }}>
+            {error}
+          </p>
+        )}
         <button
           onClick={onBack}
           style={{

@@ -160,3 +160,16 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Responsive font scaling — all rem-based sizes grow on wider screens */
+@media (min-width: 768px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 19px;
+  }
+}
