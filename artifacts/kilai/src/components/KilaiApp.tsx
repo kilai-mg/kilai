@@ -205,30 +205,58 @@ export function KilaiApp() {
               <button
                 onClick={() => navigateRitual(prevSection, -1)}
                 data-testid="button-nav-prev"
-                className="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center"
+                className="hidden md:flex fixed left-3 top-1/2 -translate-y-1/2 z-50 items-center justify-center"
                 style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: 'rgba(241,236,221,0.3)', transition: 'color 0.2s',
+                  width: '40px', height: '40px', borderRadius: '50%',
+                  background: 'rgba(8,15,10,0.7)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(168,201,138,0.14)',
+                  cursor: 'pointer',
+                  color: 'rgba(241,236,221,0.45)',
+                  transition: 'color 0.2s, border-color 0.2s, background 0.2s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.75)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.3)')}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'rgba(241,236,221,0.9)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(168,201,138,0.35)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,15,10,0.88)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'rgba(241,236,221,0.45)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(168,201,138,0.14)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,15,10,0.7)';
+                }}
               >
-                <ChevronLeft size={22} />
+                <ChevronLeft size={18} />
               </button>
             )}
             {nextSection !== null && (
               <button
                 onClick={() => navigateRitual(nextSection, 1)}
                 data-testid="button-nav-next"
-                className="hidden md:flex fixed right-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center"
+                className="hidden md:flex fixed right-3 top-1/2 -translate-y-1/2 z-50 items-center justify-center"
                 style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: 'rgba(241,236,221,0.3)', transition: 'color 0.2s',
+                  width: '40px', height: '40px', borderRadius: '50%',
+                  background: 'rgba(8,15,10,0.7)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(168,201,138,0.14)',
+                  cursor: 'pointer',
+                  color: 'rgba(241,236,221,0.45)',
+                  transition: 'color 0.2s, border-color 0.2s, background 0.2s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.75)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.3)')}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'rgba(241,236,221,0.9)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(168,201,138,0.35)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,15,10,0.88)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'rgba(241,236,221,0.45)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(168,201,138,0.14)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,15,10,0.7)';
+                }}
               >
-                <ChevronRight size={22} />
+                <ChevronRight size={18} />
               </button>
             )}
           </>

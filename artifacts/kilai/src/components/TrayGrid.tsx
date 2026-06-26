@@ -167,7 +167,7 @@ function TrayCard({ tray, onAdopt, onViewAdopted }: { tray: Tray; onAdopt: (t: T
               color: 'rgba(241,236,221,0.65)',
               letterSpacing: '0.04em',
             }}>
-              Adopt me.
+              Pick me.
             </p>
           )}
         </div>
@@ -213,7 +213,7 @@ export function TrayGrid({ onAdoptTray, onViewAdoptedTray }: TrayGridProps) {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-4 pb-20" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex-1 overflow-y-auto px-4 md:px-16 pb-20" style={{ scrollbarWidth: 'none' }}>
         <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))' }}>
           {trays.map((tray, i) => (
             <motion.div

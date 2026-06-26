@@ -41,7 +41,7 @@ export function WhatHappensNext() {
           textTransform: 'uppercase',
         }}
       >
-        What happens after you adopt your tray
+        What happens after you pick your tray
       </motion.p>
 
       <div className="flex flex-col md:flex-row gap-10 md:gap-16 max-w-2xl w-full">

@@ -399,7 +399,7 @@ export function TrayViewer({ tray, onBack }: TrayViewerProps) {
             color: 'rgba(241,236,221,0.5)',
             lineHeight: 1.7,
           }}>
-            Adopt this tray and watch it grow, every day,
+            Pick this tray and watch it grow, every day,
             <br />
             until it comes home to you.
           </p>
@@ -458,7 +458,7 @@ export function TrayViewer({ tray, onBack }: TrayViewerProps) {
                   letterSpacing: '0.06em',
                 }}
               >
-                Adopt this tray — ₹{tray.price.toLocaleString('en-IN')}
+                Pick this tray — ₹{tray.price.toLocaleString('en-IN')}
               </motion.button>
             )}
           </AnimatePresence>

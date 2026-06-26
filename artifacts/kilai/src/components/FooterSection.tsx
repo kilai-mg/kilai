@@ -142,7 +142,7 @@ export function FooterSection({ onNavigate }: FooterSectionProps) {
             onMouseEnter={e => (e.currentTarget.style.color = 'rgba(168,201,138,0.6)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'rgba(241,236,221,0.25)')}
           >
-            Adopt a tray
+            Pick a tray
           </button>
           <span style={{ opacity: 0.4 }}>·</span>
           <button

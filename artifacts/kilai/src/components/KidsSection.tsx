@@ -257,7 +257,7 @@ export function KidsSection({ onOpenAdoption }: KidsSectionProps) {
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(168,201,138,0.25)')}
                   onClick={() => onOpenAdoption('Peas')}
                 >
-                  Adopt this tray
+                  Pick this tray
                 </button>
               </div>
               {/* TODO: age-specific kit once sourcing is ready */}

@@ -15,7 +15,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'ritual', label: 'Adopt',   icon: Sprout },
+  { id: 'ritual', label: 'Pick',    icon: Sprout },
   { id: 'bulk',   label: 'Bulk',    icon: Package },
   { id: 'blogs',  label: 'Journal', icon: BookOpen },
   { id: 'kids',   label: 'Kids',    icon: Leaf },
@@ -80,7 +80,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             <span
               style={{
                 fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: '0.52rem',
+                fontSize: '0.68rem',
                 letterSpacing: '0.08em',
                 lineHeight: 1,
                 opacity: isActive ? 1 : 0.6,

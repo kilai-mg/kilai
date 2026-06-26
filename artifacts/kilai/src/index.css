@@ -68,46 +68,47 @@
 }
 
 :root {
-  --kilai-bg: #0A1D14;
-  --kilai-leaf: #14442C;
+  /* Base palette derived from #26542e (H≈130, S≈37%, L≈24%) */
+  --kilai-bg: #1e3d24;       /* main shell — L18%, clearly forest green */
+  --kilai-leaf: #26542e;     /* surfaces / cards — the reference shade */
   --kilai-sprout: #A8C98A;
   --kilai-bright: #C9E2AE;
   --kilai-cream: #F1ECDD;
   --kilai-copper: #B26B3D;
 
-  --background: 150 48% 8%;
+  --background: 130 37% 17%;   /* was 150 48% 8%  — now visible green */
   --foreground: 42 44% 91%;
-  --card: 150 51% 11%;
+  --card: 130 37% 20%;          /* was 150 51% 11% */
   --card-foreground: 42 44% 91%;
-  --card-border: 150 51% 17%;
-  --border: 150 51% 17%;
+  --card-border: 130 37% 27%;
+  --border: 130 37% 27%;
   --primary: 97 33% 66%;
-  --primary-foreground: 150 48% 8%;
-  --secondary: 150 51% 17%;
+  --primary-foreground: 130 37% 17%;
+  --secondary: 130 37% 27%;
   --secondary-foreground: 42 44% 91%;
-  --muted: 150 48% 12%;
+  --muted: 130 37% 19%;
   --muted-foreground: 97 20% 60%;
   --accent: 25 49% 47%;
   --accent-foreground: 42 44% 91%;
   --destructive: 0 62% 30%;
   --destructive-foreground: 42 44% 91%;
-  --input: 150 51% 17%;
+  --input: 130 37% 27%;
   --ring: 97 33% 66%;
-  --popover: 150 48% 8%;
+  --popover: 130 37% 17%;
   --popover-foreground: 42 44% 91%;
-  --sidebar: 150 48% 8%;
+  --sidebar: 130 37% 17%;
   --sidebar-foreground: 42 44% 91%;
-  --sidebar-border: 150 51% 17%;
+  --sidebar-border: 130 37% 27%;
   --sidebar-primary: 97 33% 66%;
-  --sidebar-primary-foreground: 150 48% 8%;
-  --sidebar-accent: 150 51% 17%;
+  --sidebar-primary-foreground: 130 37% 17%;
+  --sidebar-accent: 130 37% 27%;
   --sidebar-accent-foreground: 42 44% 91%;
   --sidebar-ring: 97 33% 66%;
   --chart-1: 97 33% 66%;
-  --chart-2: 150 51% 17%;
+  --chart-2: 130 37% 27%;
   --chart-3: 25 49% 47%;
   --chart-4: 42 44% 91%;
-  --chart-5: 150 48% 8%;
+  --chart-5: 130 37% 17%;
 
   --app-font-sans: 'Hanken Grotesk', sans-serif;
   --app-font-serif: 'Marcellus', Georgia, serif;
@@ -116,39 +117,39 @@
 }
 
 .dark {
-  --background: 150 48% 8%;
+  --background: 130 37% 17%;
   --foreground: 42 44% 91%;
-  --card: 150 51% 11%;
+  --card: 130 37% 20%;
   --card-foreground: 42 44% 91%;
-  --card-border: 150 51% 17%;
-  --border: 150 51% 17%;
+  --card-border: 130 37% 27%;
+  --border: 130 37% 27%;
   --primary: 97 33% 66%;
-  --primary-foreground: 150 48% 8%;
-  --secondary: 150 51% 17%;
+  --primary-foreground: 130 37% 17%;
+  --secondary: 130 37% 27%;
   --secondary-foreground: 42 44% 91%;
-  --muted: 150 48% 12%;
+  --muted: 130 37% 19%;
   --muted-foreground: 97 20% 60%;
   --accent: 25 49% 47%;
   --accent-foreground: 42 44% 91%;
   --destructive: 0 62% 30%;
   --destructive-foreground: 42 44% 91%;
-  --input: 150 51% 17%;
+  --input: 130 37% 27%;
   --ring: 97 33% 66%;
-  --popover: 150 48% 8%;
+  --popover: 130 37% 17%;
   --popover-foreground: 42 44% 91%;
-  --sidebar: 150 48% 8%;
+  --sidebar: 130 37% 17%;
   --sidebar-foreground: 42 44% 91%;
-  --sidebar-border: 150 51% 17%;
+  --sidebar-border: 130 37% 27%;
   --sidebar-primary: 97 33% 66%;
-  --sidebar-primary-foreground: 150 48% 8%;
-  --sidebar-accent: 150 51% 17%;
+  --sidebar-primary-foreground: 130 37% 17%;
+  --sidebar-accent: 130 37% 27%;
   --sidebar-accent-foreground: 42 44% 91%;
   --sidebar-ring: 97 33% 66%;
   --chart-1: 97 33% 66%;
-  --chart-2: 150 51% 17%;
+  --chart-2: 130 37% 27%;
   --chart-3: 25 49% 47%;
   --chart-4: 42 44% 91%;
-  --chart-5: 150 48% 8%;
+  --chart-5: 130 37% 17%;
 }
 
 @layer base {

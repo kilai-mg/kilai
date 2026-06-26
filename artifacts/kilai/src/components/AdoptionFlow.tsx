@@ -666,7 +666,7 @@ function ConfirmStep({ variety, wantTray, wantGuide, total, customerName, setCus
             transition: 'all 0.2s',
           }}
         >
-          {isPending ? 'Adopting…' : 'Adopt this tray'}
+          {isPending ? 'Picking…' : 'Pick this tray'}
         </motion.button>
         {error && (
           <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 300, fontSize: '0.73rem', color: 'rgba(255,160,120,0.8)', textAlign: 'center', lineHeight: 1.5 }}>
