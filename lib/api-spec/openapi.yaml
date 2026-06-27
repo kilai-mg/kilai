@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.2.0
+  version: 0.3.0
   description: Kilai API specification
 servers:
   - url: /api
@@ -20,6 +20,10 @@ tags:
     description: Bulk and gifting enquiries
   - name: stats
     description: Live farm statistics
+  - name: auth
+    description: OTP-based mobile authentication
+  - name: admin
+    description: Admin portfolio endpoints
 
 paths:
   /healthz:
@@ -27,7 +31,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -41,7 +44,6 @@ paths:
       operationId: listVarieties
       tags: [varieties]
       summary: List all varieties
-      description: Returns the full microgreen variety catalog
       responses:
         "200":
           description: Variety list
@@ -57,7 +59,6 @@ paths:
       operationId: listTrays
       tags: [trays]
       summary: List all trays
-      description: Returns all trays with their current grow status
       responses:
         "200":
           description: Tray list
@@ -87,11 +88,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tray"
         "404":
-          description: Tray not found
+          description: Not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NotFound"
+                $ref: "#/components/schemas/ErrorResponse"
 
   /stats:
     get:
@@ -100,7 +101,7 @@ paths:
       summary: Live farm statistics
       responses:
         "200":
-          description: Current tray counts
+          description: Stats
           content:
             application/json:
               schema:
@@ -110,7 +111,7 @@ paths:
     post:
       operationId: createBulkInquiry
       tags: [bulk]
-      summary: Submit a bulk or gifting enquiry
+      summary: Submit a bulk enquiry
       requestBody:
         required: true
         content:
@@ -130,9 +131,6 @@ paths:
       operationId: createAdoption
       tags: [adoptions]
       summary: Adopt a tray
-      description: >
-        Finds the next available tray for the requested variety, marks it adopted,
-        and records the customer details.
       requestBody:
         required: true
         content:
@@ -147,24 +145,270 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdoptionResponse"
         "409":
-          description: No available tray for that variety
+          description: No available tray
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NotFound"
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/request-otp:
+    post:
+      operationId: requestOtp
+      tags: [auth]
+      summary: Request an OTP for a mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpRequest"
+      responses:
+        "200":
+          description: OTP sent (simulated — code returned in dev)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpRequestResponse"
+        "400":
+          description: Invalid phone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify-otp:
+    post:
+      operationId: verifyOtp
+      tags: [auth]
+      summary: Verify OTP and create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpVerifyRequest"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current session user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Destroy current session
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/adoptions:
+    get:
+      operationId: adminListAdoptions
+      tags: [admin]
+      summary: List all adoptions (admin)
+      responses:
+        "200":
+          description: All adoptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAdoption"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/adoptions/{id}/status:
+    patch:
+      operationId: adminUpdateAdoptionStatus
+      tags: [admin]
+      summary: Update adoption status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAdoption"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/trays:
+    get:
+      operationId: adminListTrays
+      tags: [admin]
+      summary: List all trays with full detail (admin)
+      responses:
+        "200":
+          description: All trays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tray"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/trays/{id}/status:
+    patch:
+      operationId: adminUpdateTrayStatus
+      tags: [admin]
+      summary: Update tray status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tray"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/bulk-inquiries:
+    get:
+      operationId: adminListBulkInquiries
+      tags: [admin]
+      summary: List all bulk inquiries (admin)
+      responses:
+        "200":
+          description: All bulk inquiries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminBulkInquiry"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Extended farm stats (admin)
+      responses:
+        "200":
+          description: Extended stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    SuccessResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
 
     Variety:
       type: object
+      required: [id, name, category, character, priceBase, nutrients, nutrientNote]
       properties:
         id:
           type: integer
@@ -183,17 +427,10 @@ components:
             type: string
         nutrientNote:
           type: string
-      required:
-        - id
-        - name
-        - category
-        - character
-        - priceBase
-        - nutrients
-        - nutrientNote
 
     Tray:
       type: object
+      required: [id, variety, category, character, nutrients, nutrientNote, day, totalDays, price, status]
       properties:
         id:
           type: integer
@@ -222,17 +459,6 @@ components:
         adoptedBy:
           type: string
           nullable: true
-      required:
-        - id
-        - variety
-        - category
-        - character
-        - nutrients
-        - nutrientNote
-        - day
-        - totalDays
-        - price
-        - status
 
     FarmStats:
       type: object
@@ -269,10 +495,7 @@ components:
 
     AdoptionRequest:
       type: object
-      required:
-        - varietyName
-        - customerName
-        - customerPhone
+      required: [varietyName, customerName, customerPhone]
       properties:
         varietyName:
           type: string
@@ -289,12 +512,7 @@ components:
 
     AdoptionResponse:
       type: object
-      required:
-        - id
-        - trayId
-        - customerName
-        - totalRupees
-        - status
+      required: [id, trayId, customerName, totalRupees, status]
       properties:
         id:
           type: integer
@@ -307,10 +525,118 @@ components:
         status:
           type: string
 
-    NotFound:
+    OtpRequest:
       type: object
+      required: [phone]
       properties:
-        error:
+        phone:
           type: string
-      required:
-        - error
+
+    OtpRequestResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        devOtp:
+          type: string
+          description: "Only present in development — the OTP code for testing"
+
+    OtpVerifyRequest:
+      type: object
+      required: [phone, code]
+      properties:
+        phone:
+          type: string
+        code:
+          type: string
+
+    AuthUser:
+      type: object
+      required: [id, phone, isAdmin]
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+        name:
+          type: string
+          nullable: true
+        isAdmin:
+          type: boolean
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    AdminAdoption:
+      type: object
+      required: [id, trayId, customerName, customerPhone, totalRupees, status, createdAt]
+      properties:
+        id:
+          type: integer
+        trayId:
+          type: integer
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        wantTrayAddon:
+          type: boolean
+        wantGuideAddon:
+          type: boolean
+        totalRupees:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+        variety:
+          type: string
+          nullable: true
+
+    AdminBulkInquiry:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        quantity:
+          type: string
+          nullable: true
+        occasion:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    AdminStats:
+      type: object
+      required: [available, adopted, growing, harvested, delivered, total, totalRevenue, pendingAdoptions, confirmedAdoptions]
+      properties:
+        available:
+          type: integer
+        adopted:
+          type: integer
+        growing:
+          type: integer
+        harvested:
+          type: integer
+        delivered:
+          type: integer
+        total:
+          type: integer
+        totalRevenue:
+          type: integer
+        pendingAdoptions:
+          type: integer
+        confirmedAdoptions:
+          type: integer

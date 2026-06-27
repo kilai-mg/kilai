@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogIn, LogOut } from 'lucide-react';
 import { WelcomeSection } from './WelcomeSection';
 import { TrayGrid } from './TrayGrid';
 import { TrayViewer } from './TrayViewer';
@@ -14,7 +14,9 @@ import { KidsSection } from './KidsSection';
 import { BottomNav, SectionId } from './BottomNav';
 import { AdoptionFlow } from './AdoptionFlow';
 import { TrayDetailSheet } from './TrayDetailSheet';
-import { Tray } from '@workspace/api-client-react';
+import { SignIn } from './SignIn';
+import { AdminDashboard } from './AdminDashboard';
+import { Tray, AuthUser, useLogout, useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getListTraysQueryKey } from '@workspace/api-client-react';
 
@@ -54,7 +56,26 @@ export function KilaiApp() {
   const [selectedTray, setSelectedTray] = useState<Tray | null>(null);
   const [adoptionVariety, setAdoptionVariety] = useState<string | null>(null);
   const [detailTray, setDetailTray] = useState<Tray | null>(null);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
   const queryClient = useQueryClient();
+  const { mutateAsync: logoutMutation } = useLogout();
+
+  // Try restoring session on mount
+  const { data: meData } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      retry: false,
+    },
+  });
+
+  useEffect(() => {
+    if (meData && !user) {
+      setUser(meData);
+    }
+  }, [meData]);
 
   const prefersReduced = useReducedMotion();
   const touchStartX = useRef<number | null>(null);
@@ -81,6 +102,20 @@ export function KilaiApp() {
 
   const handleViewAdoptedTray = (tray: Tray) => {
     setDetailTray(tray);
+  };
+
+  const handleSignInSuccess = (loggedInUser: AuthUser) => {
+    setUser(loggedInUser);
+    setShowSignIn(false);
+    if (loggedInUser.isAdmin) setShowAdmin(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation();
+    } catch {}
+    setUser(null);
+    setShowAdmin(false);
   };
 
   // Swipe for ritual sections only
@@ -124,6 +159,9 @@ export function KilaiApp() {
   const nextSection = nextRitual(ritualSection);
   const isRitual    = activeTab === 'ritual';
 
+  // suppress unused warning — handleSelectTray is wired via TrayGrid internals
+  void handleSelectTray;
+
   return (
     <div
       className="relative w-screen overflow-hidden"
@@ -135,6 +173,70 @@ export function KilaiApp() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* ─── Auth / Admin header controls ─── */}
+      <div style={{ position: 'absolute', top: 14, left: 14, zIndex: 40, display: 'flex', gap: '8px' }}>
+        {user ? (
+          <>
+            {user.isAdmin && (
+              <button
+                onClick={() => setShowAdmin(true)}
+                style={{
+                  background: 'rgba(168,201,138,0.12)',
+                  border: '1px solid rgba(168,201,138,0.22)',
+                  borderRadius: '8px',
+                  color: 'var(--kilai-sprout)',
+                  cursor: 'pointer',
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: '0.55rem',
+                  padding: '5px 10px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Admin
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              style={{
+                background: 'rgba(168,201,138,0.06)',
+                border: '1px solid rgba(168,201,138,0.12)',
+                borderRadius: '8px',
+                color: 'rgba(241,236,221,0.4)',
+                cursor: 'pointer',
+                padding: '5px 8px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <LogOut size={13} strokeWidth={1.5} />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setShowSignIn(true)}
+            style={{
+              background: 'rgba(168,201,138,0.08)',
+              border: '1px solid rgba(168,201,138,0.18)',
+              borderRadius: '8px',
+              color: 'rgba(168,201,138,0.7)',
+              cursor: 'pointer',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: '0.55rem',
+              padding: '5px 10px',
+              letterSpacing: '0.12em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <LogIn size={12} strokeWidth={1.5} />
+            Sign in
+          </button>
+        )}
+      </div>
+
       {/* ─── Main content area (above bottom nav) ─── */}
       <div className="absolute inset-0" style={{ bottom: '60px' }}>
         <AnimatePresence mode="wait" custom={direction}>
@@ -198,7 +300,7 @@ export function KilaiApp() {
 
         </AnimatePresence>
 
-        {/* Desktop arrow navigation — ritual flow only */}
+        {/* Desktop arrow navigation — ritual flow only, upgraded pill buttons */}
         {isRitual && ritualSection !== 2 && (
           <>
             {prevSection !== null && (
@@ -280,6 +382,23 @@ export function KilaiApp() {
             tray={detailTray}
             onClose={() => setDetailTray(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ─── Sign In overlay ─── */}
+      <AnimatePresence>
+        {showSignIn && (
+          <SignIn
+            onSuccess={handleSignInSuccess}
+            onClose={() => setShowSignIn(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ─── Admin Dashboard overlay ─── */}
+      <AnimatePresence>
+        {showAdmin && (
+          <AdminDashboard onClose={() => setShowAdmin(false)} />
         )}
       </AnimatePresence>
 
