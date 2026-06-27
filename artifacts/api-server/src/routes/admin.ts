@@ -67,6 +67,7 @@ router.get("/admin/adoptions", requireAdmin, async (_req: Request, res: Response
         wantGuideAddon: adoptionsTable.wantGuideAddon,
         totalRupees: adoptionsTable.totalRupees,
         status: adoptionsTable.status,
+        razorpayPaymentId: adoptionsTable.razorpayPaymentId,
         createdAt: adoptionsTable.createdAt,
         variety: varietiesTable.name,
       })
@@ -110,6 +111,7 @@ router.patch("/admin/adoptions/:id/status", requireAdmin, async (req: Request, r
         wantGuideAddon: adoptionsTable.wantGuideAddon,
         totalRupees: adoptionsTable.totalRupees,
         status: adoptionsTable.status,
+        razorpayPaymentId: adoptionsTable.razorpayPaymentId,
         createdAt: adoptionsTable.createdAt,
         variety: varietiesTable.name,
       })
@@ -152,6 +154,49 @@ router.get("/admin/trays", requireAdmin, async (_req: Request, res: Response) =>
     res.json(rows);
   } catch (err) {
     logger.error({ err }, "Failed to list trays");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.patch("/admin/trays/:id/price", requireAdmin, async (req: Request, res: Response) => {
+  if (!db) { res.status(503).json({ error: "Database not configured" }); return; }
+
+  const id = Number(req.params.id);
+  const { price } = req.body ?? {};
+
+  if (!Number.isInteger(id) || id <= 0) { res.status(400).json({ error: "Invalid id" }); return; }
+  const priceNum = Number(price);
+  if (!Number.isFinite(priceNum) || priceNum < 0) {
+    res.status(400).json({ error: "price must be a non-negative number" });
+    return;
+  }
+
+  try {
+    await db.update(traysTable).set({ price: Math.round(priceNum) }).where(eq(traysTable.id, id));
+
+    const [row] = await db
+      .select({
+        id: traysTable.id,
+        variety: varietiesTable.name,
+        category: varietiesTable.category,
+        character: varietiesTable.character,
+        nutrients: varietiesTable.nutrients,
+        nutrientNote: varietiesTable.nutrientNote,
+        day: traysTable.day,
+        totalDays: traysTable.totalDays,
+        price: traysTable.price,
+        status: traysTable.status,
+        adoptedBy: traysTable.adoptedBy,
+      })
+      .from(traysTable)
+      .innerJoin(varietiesTable, eq(traysTable.varietyId, varietiesTable.id))
+      .where(eq(traysTable.id, id))
+      .limit(1);
+
+    if (!row) { res.status(404).json({ error: "Tray not found" }); return; }
+    res.json(row);
+  } catch (err) {
+    logger.error({ err }, "Failed to update tray price");
     res.status(500).json({ error: "Internal server error" });
   }
 });

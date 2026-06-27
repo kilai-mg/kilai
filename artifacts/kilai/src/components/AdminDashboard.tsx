@@ -7,6 +7,7 @@ import {
   useAdminListBulkInquiries,
   useAdminUpdateAdoptionStatus,
   useAdminUpdateTrayStatus,
+  useAdminUpdateTrayPrice,
   getAdminGetStatsQueryKey,
   getAdminListAdoptionsQueryKey,
   getAdminListTraysQueryKey,
@@ -14,7 +15,7 @@ import {
 } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 
-type AdminTab = 'overview' | 'adoptions' | 'trays' | 'bulk';
+type AdminTab = 'overview' | 'adoptions' | 'trays' | 'bulk' | 'payments';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'rgba(255,200,80,0.85)',
@@ -65,6 +66,109 @@ function StatCard({ label, value, sub }: { label: string; value: number | string
   );
 }
 
+function PriceEditor({ trayId, currentPrice, onSaved }: { trayId: number; currentPrice: number; onSaved: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(String(currentPrice));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const { mutateAsync: updatePrice } = useAdminUpdateTrayPrice();
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setEditing(true); setValue(String(currentPrice)); setError(''); }}
+        style={{
+          background: 'none',
+          border: '1px dashed rgba(168,201,138,0.2)',
+          borderRadius: '6px',
+          color: 'var(--kilai-sprout)',
+          cursor: 'pointer',
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '0.62rem',
+          padding: '2px 8px',
+          letterSpacing: '0.05em',
+        }}
+        title="Edit price"
+      >
+        ₹{currentPrice} ✎
+      </button>
+    );
+  }
+
+  async function handleSave() {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0) { setError('Enter a valid amount'); return; }
+    setSaving(true);
+    try {
+      await updatePrice({ id: trayId, data: { price: Math.round(n) } });
+      setEditing(false);
+      onSaved();
+    } catch {
+      setError('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.62rem', color: 'rgba(168,201,138,0.5)' }}>₹</span>
+      <input
+        type="number"
+        min="0"
+        value={value}
+        onChange={e => { setValue(e.target.value); setError(''); }}
+        onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false); }}
+        autoFocus
+        style={{
+          width: '80px',
+          background: 'rgba(168,201,138,0.06)',
+          border: '1px solid rgba(168,201,138,0.3)',
+          borderRadius: '6px',
+          color: 'var(--kilai-cream)',
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '0.72rem',
+          padding: '3px 8px',
+          outline: 'none',
+        }}
+      />
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        style={{
+          background: 'rgba(168,201,138,0.15)',
+          border: '1px solid rgba(168,201,138,0.3)',
+          borderRadius: '5px',
+          color: 'var(--kilai-sprout)',
+          cursor: saving ? 'default' : 'pointer',
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '0.55rem',
+          padding: '3px 10px',
+          opacity: saving ? 0.5 : 1,
+        }}
+      >
+        {saving ? '...' : 'Save'}
+      </button>
+      <button
+        onClick={() => setEditing(false)}
+        style={{
+          background: 'none',
+          border: '1px solid rgba(168,201,138,0.1)',
+          borderRadius: '5px',
+          color: 'rgba(241,236,221,0.35)',
+          cursor: 'pointer',
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: '0.55rem',
+          padding: '3px 8px',
+        }}
+      >
+        ✕
+      </button>
+      {error && <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.55rem', color: 'rgba(220,80,80,0.8)', width: '100%' }}>{error}</span>}
+    </div>
+  );
+}
+
 export function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const qc = useQueryClient();
@@ -93,9 +197,18 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
     } catch {}
   }
 
+  function invalidateTrays() {
+    qc.invalidateQueries({ queryKey: getAdminListTraysQueryKey() });
+    qc.invalidateQueries({ queryKey: getAdminGetStatsQueryKey() });
+  }
+
+  const paidAdoptions = adoptions?.filter(a => a.razorpayPaymentId) ?? [];
+  const paidRevenue = paidAdoptions.reduce((sum, a) => sum + a.totalRupees, 0);
+
   const TABS: { id: AdminTab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'adoptions', label: `Orders (${adoptions?.length ?? 0})` },
+    { id: 'payments', label: `Payments (${paidAdoptions.length})` },
     { id: 'trays', label: `Trays (${trays?.length ?? 0})` },
     { id: 'bulk', label: `Bulk (${bulkInquiries?.length ?? 0})` },
   ];
@@ -244,7 +357,6 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
                       )}
                     </div>
 
-                    {/* Status changer */}
                     <div style={{ marginTop: '14px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.55rem', color: 'rgba(168,201,138,0.35)', alignSelf: 'center' }}>Update:</span>
                       {ADOPTION_STATUSES.filter(s => s !== adoption.status).map(s => (
@@ -290,21 +402,34 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
                     border: '1px solid rgba(168,201,138,0.1)',
                     borderRadius: '12px',
                     padding: '14px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    flexWrap: 'wrap',
                   }}>
-                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.7rem', color: 'rgba(168,201,138,0.35)', minWidth: '32px' }}>#{tray.id}</span>
-                    <div style={{ flex: 1, minWidth: '120px' }}>
-                      <p style={{ fontFamily: "'Marcellus', serif", fontSize: '0.95rem', color: 'var(--kilai-cream)', marginBottom: '2px' }}>{tray.variety}</p>
-                      <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(168,201,138,0.45)' }}>Day {tray.day}/{tray.totalDays} · ₹{tray.price}</p>
+                    {/* Tray header row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.7rem', color: 'rgba(168,201,138,0.35)', minWidth: '32px' }}>#{tray.id}</span>
+                      <div style={{ flex: 1, minWidth: '100px' }}>
+                        <p style={{ fontFamily: "'Marcellus', serif", fontSize: '0.95rem', color: 'var(--kilai-cream)', marginBottom: '1px' }}>{tray.variety}</p>
+                        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.55rem', color: 'rgba(168,201,138,0.4)' }}>Day {tray.day}/{tray.totalDays}</p>
+                      </div>
+                      <StatusBadge status={tray.status} />
                     </div>
-                    <StatusBadge status={tray.status} />
+
+                    {/* Price editor */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.55rem', color: 'rgba(168,201,138,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Price:</span>
+                      <PriceEditor
+                        trayId={tray.id}
+                        currentPrice={tray.price}
+                        onSaved={invalidateTrays}
+                      />
+                    </div>
+
                     {tray.adoptedBy && (
-                      <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(168,201,138,0.35)', width: '100%' }}>→ {tray.adoptedBy}</p>
+                      <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(168,201,138,0.35)', marginBottom: '8px' }}>→ {tray.adoptedBy}</p>
                     )}
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', width: '100%' }}>
+
+                    {/* Status buttons */}
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.52rem', color: 'rgba(168,201,138,0.3)', alignSelf: 'center', marginRight: '2px' }}>Status:</span>
                       {TRAY_STATUSES.filter(s => s !== tray.status).map(s => (
                         <button
                           key={s}
@@ -319,11 +444,93 @@ export function AdminDashboard({ onClose }: { onClose: () => void }) {
                             fontSize: '0.52rem',
                             padding: '3px 8px',
                             letterSpacing: '0.06em',
+                            transition: 'all 0.15s',
                           }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(168,201,138,0.12)'; e.currentTarget.style.color = 'var(--kilai-cream)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(168,201,138,0.05)'; e.currentTarget.style.color = 'rgba(241,236,221,0.45)'; }}
                         >
                           {s}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* PAYMENTS TAB */}
+        {activeTab === 'payments' && (
+          <div>
+            {/* Summary strip */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
+              <StatCard
+                label="Paid orders"
+                value={paidAdoptions.length}
+                sub={`of ${adoptions?.length ?? 0} total`}
+              />
+              <StatCard
+                label="Razorpay revenue"
+                value={`₹${paidRevenue.toLocaleString('en-IN')}`}
+                sub="confirmed payments"
+              />
+            </div>
+
+            {paidAdoptions.length === 0 ? (
+              <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.68rem', color: 'rgba(168,201,138,0.35)', textAlign: 'center', marginTop: '40px' }}>No payments collected yet</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[...paidAdoptions].reverse().map(a => (
+                  <div key={a.id} style={{
+                    background: 'rgba(168,201,138,0.04)',
+                    border: '1px solid rgba(168,201,138,0.1)',
+                    borderRadius: '14px',
+                    padding: '16px',
+                  }}>
+                    {/* Top row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <div>
+                        <p style={{ fontFamily: "'Marcellus', serif", fontSize: '0.95rem', color: 'var(--kilai-cream)', marginBottom: '2px' }}>{a.customerName}</p>
+                        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(168,201,138,0.45)' }}>{a.customerPhone}</p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ fontFamily: "'Marcellus', serif", fontSize: '1.05rem', color: 'var(--kilai-sprout)' }}>₹{a.totalRupees.toLocaleString('en-IN')}</p>
+                        <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.52rem', color: 'rgba(168,201,138,0.3)', marginTop: '2px' }}>
+                          {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Variety + status chips */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      <StatusBadge status={a.status} />
+                      {a.variety && (
+                        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'rgba(168,201,138,0.5)', padding: '2px 10px', borderRadius: '99px', border: '1px solid rgba(168,201,138,0.15)' }}>
+                          {a.variety}
+                        </span>
+                      )}
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.56rem', color: 'rgba(168,201,138,0.35)', padding: '2px 8px', borderRadius: '99px', border: '1px solid rgba(168,201,138,0.08)' }}>
+                        Tray #{a.trayId}
+                      </span>
+                    </div>
+
+                    {/* Payment ID */}
+                    <div style={{
+                      background: 'rgba(168,201,138,0.06)',
+                      border: '1px solid rgba(168,201,138,0.12)',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.52rem', color: 'rgba(168,201,138,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        Pay ID
+                      </span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.58rem', color: 'var(--kilai-sprout)', letterSpacing: '0.04em', wordBreak: 'break-all' }}>
+                        {a.razorpayPaymentId}
+                      </span>
                     </div>
                   </div>
                 ))}

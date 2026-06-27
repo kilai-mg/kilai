@@ -312,6 +312,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /admin/trays/{id}/price:
+    patch:
+      operationId: adminUpdateTrayPrice
+      tags: [admin]
+      summary: Update tray price (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePriceRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tray"
+        "400":
+          description: Invalid price
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /admin/trays/{id}/status:
     patch:
       operationId: adminUpdateTrayStatus
@@ -359,6 +396,56 @@ paths:
                   $ref: "#/components/schemas/AdminBulkInquiry"
         "403":
           description: Not admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments/create-order:
+    post:
+      operationId: createPaymentOrder
+      tags: [payments]
+      summary: Create a Razorpay order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "200":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOrderResponse"
+        "503":
+          description: Gateway not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payments]
+      summary: Verify Razorpay payment signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentRequest"
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyPaymentResponse"
+        "400":
+          description: Verification failed
           content:
             application/json:
               schema:
@@ -572,6 +659,14 @@ components:
         status:
           type: string
 
+    UpdatePriceRequest:
+      type: object
+      required: [price]
+      properties:
+        price:
+          type: integer
+          minimum: 0
+
     AdminAdoption:
       type: object
       required: [id, trayId, customerName, customerPhone, totalRupees, status, createdAt]
@@ -592,6 +687,9 @@ components:
           type: integer
         status:
           type: string
+        razorpayPaymentId:
+          type: string
+          nullable: true
         createdAt:
           type: string
         variety:
@@ -616,6 +714,56 @@ components:
           type: string
           nullable: true
         createdAt:
+          type: string
+
+    CreateOrderRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          description: Amount in rupees
+        adoptionId:
+          type: integer
+          nullable: true
+        receipt:
+          type: string
+          nullable: true
+
+    CreateOrderResponse:
+      type: object
+      required: [orderId, amount, currency, keyId]
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        keyId:
+          type: string
+
+    VerifyPaymentRequest:
+      type: object
+      required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
+      properties:
+        razorpay_order_id:
+          type: string
+        razorpay_payment_id:
+          type: string
+        razorpay_signature:
+          type: string
+        adoptionId:
+          type: integer
+          nullable: true
+
+    VerifyPaymentResponse:
+      type: object
+      required: [ok, paymentId]
+      properties:
+        ok:
+          type: boolean
+        paymentId:
           type: string
 
     AdminStats:

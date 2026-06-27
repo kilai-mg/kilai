@@ -1,2 +1,25 @@
 export * from "./generated/api";
-export * from "./generated/types";
+export type {
+  AdminAdoption,
+  AdminBulkInquiry,
+  AdminStats,
+  AdoptionRequest,
+  AdoptionResponse,
+  AuthUser,
+  BulkInquiryRequest,
+  BulkInquiryResponse,
+  FarmStats,
+  HealthStatus,
+  OtpRequest,
+  OtpRequestResponse,
+  OtpVerifyRequest,
+  SuccessResponse,
+  Tray,
+  TrayCategory,
+  TrayStatus,
+  UpdatePriceRequest,
+  UpdateStatusRequest,
+  Variety,
+  VarietyCategory,
+  ErrorResponse,
+} from "./generated/types";

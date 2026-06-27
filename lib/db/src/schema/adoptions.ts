@@ -10,6 +10,7 @@ export const adoptionsTable = pgTable("adoptions", {
   wantGuideAddon: boolean("want_guide_addon").notNull().default(false),
   totalRupees: integer("total_rupees").notNull(),
   status: text("status").notNull().default("pending"),
+  razorpayPaymentId: text("razorpay_payment_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

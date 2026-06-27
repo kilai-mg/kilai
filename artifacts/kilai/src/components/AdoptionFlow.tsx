@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, Check, ChevronRight, BookOpen, Layers } from 'lucide-react';
 import { VARIETY_DATA } from '@/data/trays';
-import { useCreateAdoption } from '@workspace/api-client-react';
+import { useCreateAdoption, createPaymentOrder, verifyPayment } from '@workspace/api-client-react';
 
 // ── Pricing ──────────────────────────────────────────────────────────────────
 const ADDON_TRAY_PRICE   = 349;
@@ -44,7 +44,9 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
 
   const stepIndex = step === 'variety' ? 0 : step === 'addons' ? 1 : 2;
 
-  const { mutateAsync: adopt, isPending: isAdopting } = useCreateAdoption();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const { mutateAsync: adopt } = useCreateAdoption();
 
   const slideVariants = prefersReduced
     ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
@@ -57,8 +59,11 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
   async function handleConfirm() {
     if (!variety || !customerName.trim() || !customerPhone.trim()) return;
     setAdoptionError(null);
+    setIsProcessing(true);
+
     try {
-      const result = await adopt({
+      // Step 1 — create adoption record (pending payment)
+      const adoption = await adopt({
         data: {
           varietyName: variety.name,
           customerName: customerName.trim(),
@@ -67,11 +72,75 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
           wantGuideAddon: wantGuide,
         },
       });
-      setAssignedTrayId(result.trayId);
-      setDone(true);
-    } catch {
-      setAdoptionError('Something went wrong. Please try again or call us.');
+
+      // Step 2 — create Razorpay order
+      const order = await createPaymentOrder({
+        amount: total,
+        adoptionId: adoption.id ?? null,
+        receipt: `kilai_${adoption.id ?? Date.now()}`,
+      });
+
+      // Step 3 — load Razorpay checkout script and open modal
+      await loadRazorpayScript();
+
+      await new Promise<void>((resolve, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rzp = new (window as any).Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.orderId,
+          name: 'Kilai Microgreens',
+          description: `${variety.name} adoption`,
+          prefill: {
+            name: customerName.trim(),
+            contact: customerPhone.trim(),
+          },
+          theme: { color: '#a8c98a' },
+          handler: async (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              await verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                adoptionId: adoption.id ?? null,
+              });
+              setAssignedTrayId(adoption.trayId);
+              setDone(true);
+              resolve();
+            } catch {
+              reject(new Error('Payment verification failed'));
+            }
+          },
+          modal: {
+            ondismiss: () => reject(new Error('dismissed')),
+          },
+        });
+        rzp.open();
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg !== 'dismissed') {
+        setAdoptionError('Payment failed. Please try again or call us.');
+      }
+    } finally {
+      setIsProcessing(false);
     }
+  }
+
+  function loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).Razorpay) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay'));
+      document.body.appendChild(script);
+    });
   }
 
   // ── Done screen ─────────────────────────────────────────────────────────────
@@ -216,7 +285,7 @@ export function AdoptionFlow({ preselectedVariety, onClose }: AdoptionFlowProps)
                   setCustomerName={setCustomerName}
                   customerPhone={customerPhone}
                   setCustomerPhone={setCustomerPhone}
-                  isPending={isAdopting}
+                  isPending={isProcessing}
                   error={adoptionError}
                   onBack={() => setStep('addons')}
                   onConfirm={handleConfirm}

@@ -7,6 +7,7 @@ import bulkInquiriesRouter from "./bulk_inquiries";
 import statsRouter from "./stats";
 import authRouter from "./auth";
 import adminRouter from "./admin";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(adoptionsRouter);
 router.use(bulkInquiriesRouter);
 router.use(authRouter);
 router.use(adminRouter);
+router.use(paymentsRouter);
 
 export default router;

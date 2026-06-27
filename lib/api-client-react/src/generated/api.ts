@@ -28,6 +28,8 @@ import type {
   AuthUser,
   BulkInquiryRequest,
   BulkInquiryResponse,
+  CreateOrderRequest,
+  CreateOrderResponse,
   ErrorResponse,
   FarmStats,
   HealthStatus,
@@ -36,8 +38,11 @@ import type {
   OtpVerifyRequest,
   SuccessResponse,
   Tray,
+  UpdatePriceRequest,
   UpdateStatusRequest,
-  Variety
+  Variety,
+  VerifyPaymentRequest,
+  VerifyPaymentResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1104,6 +1109,77 @@ export function useAdminListTrays<TData = Awaited<ReturnType<typeof adminListTra
 
 
 
+export const getAdminUpdateTrayPriceUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/trays/${id}/price`
+}
+
+/**
+ * @summary Update tray price (admin)
+ */
+export const adminUpdateTrayPrice = async (id: number,
+    updatePriceRequest: UpdatePriceRequest, options?: RequestInit): Promise<Tray> => {
+
+  return customFetch<Tray>(getAdminUpdateTrayPriceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updatePriceRequest)
+  }
+);}
+
+
+
+
+export const getAdminUpdateTrayPriceMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminUpdateTrayPrice>>, TError,{id: number;data: BodyType<UpdatePriceRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminUpdateTrayPrice>>, TError,{id: number;data: BodyType<UpdatePriceRequest>}, TContext> => {
+
+const mutationKey = ['adminUpdateTrayPrice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminUpdateTrayPrice>>, {id: number;data: BodyType<UpdatePriceRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  adminUpdateTrayPrice(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminUpdateTrayPriceMutationResult = NonNullable<Awaited<ReturnType<typeof adminUpdateTrayPrice>>>
+    export type AdminUpdateTrayPriceMutationBody = BodyType<UpdatePriceRequest>
+    export type AdminUpdateTrayPriceMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update tray price (admin)
+ */
+export const useAdminUpdateTrayPrice = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminUpdateTrayPrice>>, TError,{id: number;data: BodyType<UpdatePriceRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminUpdateTrayPrice>>,
+        TError,
+        {id: number;data: BodyType<UpdatePriceRequest>},
+        TContext
+      > => {
+      return useMutation(getAdminUpdateTrayPriceMutationOptions(options));
+    }
+
 export const getAdminUpdateTrayStatusUrl = (id: number,) => {
 
 
@@ -1251,6 +1327,146 @@ export function useAdminListBulkInquiries<TData = Awaited<ReturnType<typeof admi
 
 
 
+
+export const getCreatePaymentOrderUrl = () => {
+
+
+
+
+  return `/api/payments/create-order`
+}
+
+/**
+ * @summary Create a Razorpay order
+ */
+export const createPaymentOrder = async (createOrderRequest: CreateOrderRequest, options?: RequestInit): Promise<CreateOrderResponse> => {
+
+  return customFetch<CreateOrderResponse>(getCreatePaymentOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createOrderRequest)
+  }
+);}
+
+
+
+
+export const getCreatePaymentOrderMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentOrder>>, TError,{data: BodyType<CreateOrderRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPaymentOrder>>, TError,{data: BodyType<CreateOrderRequest>}, TContext> => {
+
+const mutationKey = ['createPaymentOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPaymentOrder>>, {data: BodyType<CreateOrderRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPaymentOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePaymentOrderMutationResult = NonNullable<Awaited<ReturnType<typeof createPaymentOrder>>>
+    export type CreatePaymentOrderMutationBody = BodyType<CreateOrderRequest>
+    export type CreatePaymentOrderMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a Razorpay order
+ */
+export const useCreatePaymentOrder = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentOrder>>, TError,{data: BodyType<CreateOrderRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPaymentOrder>>,
+        TError,
+        {data: BodyType<CreateOrderRequest>},
+        TContext
+      > => {
+      return useMutation(getCreatePaymentOrderMutationOptions(options));
+    }
+
+export const getVerifyPaymentUrl = () => {
+
+
+
+
+  return `/api/payments/verify`
+}
+
+/**
+ * @summary Verify Razorpay payment signature
+ */
+export const verifyPayment = async (verifyPaymentRequest: VerifyPaymentRequest, options?: RequestInit): Promise<VerifyPaymentResponse> => {
+
+  return customFetch<VerifyPaymentResponse>(getVerifyPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(verifyPaymentRequest)
+  }
+);}
+
+
+
+
+export const getVerifyPaymentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyPayment>>, TError,{data: BodyType<VerifyPaymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyPayment>>, TError,{data: BodyType<VerifyPaymentRequest>}, TContext> => {
+
+const mutationKey = ['verifyPayment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyPayment>>, {data: BodyType<VerifyPaymentRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof verifyPayment>>>
+    export type VerifyPaymentMutationBody = BodyType<VerifyPaymentRequest>
+    export type VerifyPaymentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify Razorpay payment signature
+ */
+export const useVerifyPayment = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyPayment>>, TError,{data: BodyType<VerifyPaymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyPayment>>,
+        TError,
+        {data: BodyType<VerifyPaymentRequest>},
+        TContext
+      > => {
+      return useMutation(getVerifyPaymentMutationOptions(options));
+    }
 
 export const getAdminGetStatsUrl = () => {
 
